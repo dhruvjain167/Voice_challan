@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, make_response
 from flask_cors import CORS
 from fpdf import FPDF
 import os
@@ -13,14 +13,20 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["http://localhost:5173"],
-        "methods": ["GET", "POST", "DELETE"],
-        "allow_headers": ["Content-Type"]
+        "origins": [
+            "http://localhost:5173",  # Local development
+            "https://voice-challan-app.vercel.app",  # Deployed frontend URL
+            "*"  # Wildcard for flexibility (use cautiously)
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
     }
 })
 
 PDF_DIR = "generated_pdfs"
 BACKUP_DIR = "backups"
+
+# Create directories if they don't exist
 for directory in [PDF_DIR, BACKUP_DIR]:
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -44,19 +50,27 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Initialize database
 init_db()
 
 @app.route('/api/generate-pdf', methods=['POST', 'OPTIONS'])
 def generate_pdf():
+    # Handle preflight OPTIONS request
     if request.method == 'OPTIONS':
-        return app.make_default_options_response()
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+        return response
     
     try:
+        # Validate JSON content
         if not request.is_json:
             return jsonify({'error': 'Content-Type must be application/json'}), 400
         
         data = request.json
         
+        # Validate required fields
         required_fields = ['items', 'customerName', 'challanNo']
         missing_fields = [field for field in required_fields if field not in data]
         
@@ -67,6 +81,7 @@ def generate_pdf():
         if not isinstance(items, list) or not items:
             return jsonify({'error': 'Items must be a non-empty array'}), 400
         
+        # Validate item structure
         for idx, item in enumerate(items):
             if not isinstance(item, dict) or 'quantity' not in item or 'description' not in item:
                 return jsonify({'error': f'Invalid item at index {idx}. Each item must have quantity and description'}), 400
@@ -74,27 +89,31 @@ def generate_pdf():
         customer_name = data['customerName']
         challan_no = data['challanNo']
         
+        # Generate safe filename
         current_date = datetime.now().strftime('%Y%m%d')
         safe_customer_name = "".join(x for x in customer_name if x.isalnum() or x in [' ', '_']).strip()
         filename = f"{safe_customer_name}_{current_date}_challan_{challan_no}.pdf"
         filepath = os.path.join(PDF_DIR, filename)
 
-        # Create PDF with standard fonts
+        # Create PDF
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Helvetica", '', 12)
         
+        # PDF Header
         pdf.cell(200, 10, txt="Shakti Trading Co.", ln=True, align="C")
         pdf.cell(200, 10, txt=f"Date: {datetime.now().strftime('%d-%m-%Y')}", ln=True, align="R")
         pdf.cell(200, 10, txt=f"Customer: {customer_name}", ln=True, align="L")
         pdf.cell(200, 10, txt=f"Challan No: {challan_no}", ln=True, align="L")
         
+        # Table Headers
         pdf.set_font("Helvetica", 'B', 10)
         pdf.cell(30, 10, "Quantity", 1, 0, "C")
         pdf.cell(80, 10, "Description", 1, 0, "C")
         pdf.cell(30, 10, "Price", 1, 0, "C")
         pdf.cell(30, 10, "Total", 1, 1, "C")
         
+        # Table Data
         pdf.set_font("Helvetica", '', 10)
         total_items = 0
         total_price = 0
@@ -112,12 +131,15 @@ def generate_pdf():
             total_items += quantity
             total_price += item_total
         
+        # Total Row
         pdf.set_font("Helvetica", 'B', 10)
         pdf.cell(140, 10, "Total", 1, 0, "R")
         pdf.cell(30, 10, f"Rs {total_price:.2f}", 1, 1, "R")
         
+        # Save PDF
         pdf.output(filepath)
         
+        # Database Insertion
         try:
             conn = sqlite3.connect('challans.db')
             c = conn.cursor()
@@ -133,6 +155,7 @@ def generate_pdf():
         finally:
             conn.close()
         
+        # Return PDF
         return send_file(filepath, as_attachment=True, download_name=filename)
         
     except Exception as e:
@@ -140,4 +163,4 @@ def generate_pdf():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
