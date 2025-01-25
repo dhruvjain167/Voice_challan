@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import RecordRTC from 'recordrtc';
 import { parseVoiceInput } from './utils';
+import ChallanList from './ChallanList';
 
 const App = () => {
   const [voiceText, setVoiceText] = useState('');
@@ -173,12 +175,7 @@ const App = () => {
       window.URL.revokeObjectURL(url);
 
       setSuccess('PDF generated successfully!');
-      setCustomerName('');
-      setChallanNo('');
-      setParsedItems([]);
-      setVoiceText('');
-      setEditablePrices({});
-      setIsPriceEditMode(false);
+      clearForm();
 
     } catch (err) {
       console.error('Error generating PDF:', err);
@@ -208,13 +205,21 @@ const App = () => {
     setEditablePrices(initialPrices);
   };
 
-  return (
-    <div className={`min-h-screen bg-gray-50 py-8 ${isMobile ? 'px-2' : 'px-4'}`}>
+  const NavBar = () => (
+    <nav className="bg-gray-800 p-4 text-white">
+      <div className="container mx-auto flex justify-between items-center">
+        <h1 className="text-xl font-bold">Voice Challan Generator</h1>
+        <div className="space-x-4">
+          <Link to="/" className="hover:text-gray-300">Generate Challan</Link>
+          <Link to="/list" className="hover:text-gray-300">Challan List</Link>
+        </div>
+      </div>
+    </nav>
+  );
+
+  const ChallanGenerator = () => (
+    <div className={`py-8 ${isMobile ? 'px-2' : 'px-4'}`}>
       <div className={`mx-auto ${isMobile ? 'w-full' : 'max-w-2xl'}`}>
-        <h1 className={`text-3xl font-bold text-center mb-8 ${isMobile ? 'text-2xl' : ''}`}>
-          Voice Challan Generator
-        </h1>
-        
         <div className={`bg-white rounded-lg shadow p-6 ${isMobile ? 'p-3' : ''}`}>
           <div className="space-y-4 mb-6">
             <div>
@@ -344,6 +349,18 @@ const App = () => {
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <Routes>
+          <Route path="/" element={<ChallanGenerator />} />
+          <Route path="/list" element={<ChallanList />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
