@@ -239,6 +239,10 @@ def health_check():
             "timestamp": datetime.now().isoformat()
         }), 500
 
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
