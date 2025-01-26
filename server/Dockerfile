@@ -1,0 +1,22 @@
+FROM python:3.9-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Set environment variable for Flask port
+ENV PORT=10000
+
+# Command to run the application
+CMD gunicorn --bind 0.0.0.0:$PORT app:app --log-level debug 
