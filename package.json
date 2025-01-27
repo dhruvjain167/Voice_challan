@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "copy-ffmpeg": "cpy node_modules/@ffmpeg/core/dist/ffmpeg-core.* public/"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
