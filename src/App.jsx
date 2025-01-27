@@ -1,9 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
 import RecordRTC from 'recordrtc';
 import { parseVoiceInput } from './utils';
-import ChallanList from './ChallanList';
-import { config } from './config';
 
 const App = () => {
   const [voiceText, setVoiceText] = useState('');
@@ -16,39 +13,9 @@ const App = () => {
   const [success, setSuccess] = useState('');
   const [editablePrices, setEditablePrices] = useState({});
   const [isPriceEditMode, setIsPriceEditMode] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
   const recorder = useRef(null);
   const stream = useRef(null);
-  const audioInputRef = useRef(null);
-
-  // Responsive design check
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Add this to test the backend connection when the component mounts
-  useEffect(() => {
-    const checkBackendConnection = async () => {
-      try {
-        const response = await fetch(`${config.apiUrl}/api/health`);
-        if (!response.ok) {
-          throw new Error('Backend not responding');
-        }
-        const data = await response.json();
-        console.log('Backend status:', data);
-      } catch (error) {
-        console.error('Backend connection error:', error);
-      }
-    };
-
-    checkBackendConnection();
-  }, []);
 
   const handleVoiceInput = async () => {
     try {
@@ -68,21 +35,8 @@ const App = () => {
       setError(null);
     } catch (err) {
       console.error('Recording error:', err);
-      
-      if (isMobile) {
-        audioInputRef.current.click();
-      } else {
-        setError('Error accessing microphone. Please ensure microphone permissions are granted.');
-        setIsListening(false);
-      }
-    }
-  };
-
-  const handleFileInput = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const audioBlob = new Blob([file], { type: 'audio/wav' });
-      await translateAudioToText(audioBlob);
+      setError('Error accessing microphone. Please ensure microphone permissions are granted.');
+      setIsListening(false);
     }
   };
 
@@ -170,7 +124,7 @@ const App = () => {
     };
 
     try {
-      const response = await fetch(`${config.apiUrl}/api/generate-pdf`, {
+      const response = await fetch('http://localhost:5000/api/generate-pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,15 +137,7 @@ const App = () => {
         throw new Error(errorData.error || 'Failed to generate PDF');
       }
 
-      const data = await response.json();
-      
-      // Download the generated PDF
-      const pdfResponse = await fetch(`${config.apiUrl}/api/download-pdf/${data.challanId}`);
-      if (!pdfResponse.ok) {
-        throw new Error('Failed to download PDF');
-      }
-
-      const blob = await pdfResponse.blob();
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -202,7 +148,12 @@ const App = () => {
       window.URL.revokeObjectURL(url);
 
       setSuccess('PDF generated successfully!');
-      clearForm();
+      setCustomerName('');
+      setChallanNo('');
+      setParsedItems([]);
+      setVoiceText('');
+      setEditablePrices({});
+      setIsPriceEditMode(false);
 
     } catch (err) {
       console.error('Error generating PDF:', err);
@@ -232,22 +183,12 @@ const App = () => {
     setEditablePrices(initialPrices);
   };
 
-  const NavBar = () => (
-    <nav className="bg-gray-800 p-4 text-white">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold">Voice Challan Generator</h1>
-        <div className="space-x-4">
-          <Link to="/" className="hover:text-gray-300">Generate Challan</Link>
-          <Link to="/list" className="hover:text-gray-300">Challan List</Link>
-        </div>
-      </div>
-    </nav>
-  );
-
-  const ChallanGenerator = () => (
-    <div className={`py-8 ${isMobile ? 'px-2' : 'px-4'}`}>
-      <div className={`mx-auto ${isMobile ? 'w-full' : 'max-w-2xl'}`}>
-        <div className={`bg-white rounded-lg shadow p-6 ${isMobile ? 'p-3' : ''}`}>
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-2xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-center mb-8">Voice Challan Generator</h1>
+        
+        <div className="bg-white rounded-lg shadow p-6">
           <div className="space-y-4 mb-6">
             <div>
               <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -278,7 +219,7 @@ const App = () => {
             </div>
           </div>
 
-          <div className="flex gap-4 mb-6 flex-wrap">
+          <div className="flex gap-4 mb-6">
             <button
               onClick={handleVoiceInput}
               className={`px-4 py-2 rounded ${
@@ -296,14 +237,6 @@ const App = () => {
             >
               Stop
             </button>
-            
-            <input 
-              type="file" 
-              ref={audioInputRef} 
-              accept="audio/*" 
-              className="hidden" 
-              onChange={handleFileInput} 
-            />
             
             {parsedItems.length > 0 && !isPriceEditMode && (
               <button
@@ -356,7 +289,7 @@ const App = () => {
               <h3 className="font-semibold mb-2">Parsed Items:</h3>
               <div className="space-y-2">
                 {parsedItems.map((item, index) => (
-                  <div key={index} className="p-2 bg-blue-50 rounded flex justify-between items-center flex-wrap gap-2">
+                  <div key={index} className="p-2 bg-blue-50 rounded flex justify-between items-center">
                     <span className="font-medium">Quantity: {item.quantity}</span>
                     <span>Description: {item.description}</span>
                     {isPriceEditMode && (
@@ -376,18 +309,6 @@ const App = () => {
         </div>
       </div>
     </div>
-  );
-
-  return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <NavBar />
-        <Routes>
-          <Route path="/" element={<ChallanGenerator />} />
-          <Route path="/list" element={<ChallanList />} />
-        </Routes>
-      </div>
-    </Router>
   );
 };
 
