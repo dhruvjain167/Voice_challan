@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import RecordRTC from 'recordrtc';
 import { parseVoiceInput } from './utils';
 import ChallanList from './ChallanList';
-import { API_URL } from './config';
+import { config } from './config';
 
 const App = () => {
   const [voiceText, setVoiceText] = useState('');
@@ -30,6 +30,24 @@ const App = () => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Add this to test the backend connection when the component mounts
+  useEffect(() => {
+    const checkBackendConnection = async () => {
+      try {
+        const response = await fetch(`${config.apiUrl}/api/health`);
+        if (!response.ok) {
+          throw new Error('Backend not responding');
+        }
+        const data = await response.json();
+        console.log('Backend status:', data);
+      } catch (error) {
+        console.error('Backend connection error:', error);
+      }
+    };
+
+    checkBackendConnection();
   }, []);
 
   const handleVoiceInput = async () => {
@@ -152,7 +170,7 @@ const App = () => {
     };
 
     try {
-      const response = await fetch(`${API_URL}/api/generate-pdf`, {
+      const response = await fetch(`${config.apiUrl}/api/generate-pdf`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +186,7 @@ const App = () => {
       const data = await response.json();
       
       // Download the generated PDF
-      const pdfResponse = await fetch(`${API_URL}/api/download-pdf/${data.challanId}`);
+      const pdfResponse = await fetch(`${config.apiUrl}/api/download-pdf/${data.challanId}`);
       if (!pdfResponse.ok) {
         throw new Error('Failed to download PDF');
       }

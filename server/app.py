@@ -18,7 +18,7 @@ CORS(app, resources={
     r"/api/*": {
         "origins": [
             "http://localhost:5173",
-            "https://voice-challan.vercel.app",
+            "https://voice-challan-project.vercel.app",
             "https://voice-challan-api.onrender.com"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
@@ -59,6 +59,13 @@ def init_db():
 
 # Initialize database on startup
 init_db()
+
+@app.route('/')
+def root():
+    return jsonify({
+        "status": "online",
+        "message": "Voice Challan API is running"
+    })
 
 @app.route('/api/generate-pdf', methods=['POST', 'OPTIONS'])
 def generate_pdf():

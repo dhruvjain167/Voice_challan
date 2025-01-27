@@ -17,17 +17,29 @@
     },
     "rewrites": [
       {
+        "source": "/api/:path*",
+        "destination": "https://voice-challan-api.onrender.com/api/:path*"
+      },
+      {
         "source": "/(.*)",
         "destination": "/index.html"
       }
     ],
     "headers": [
       {
-        "source": "/(.*)",
+        "source": "/api/(.*)",
         "headers": [
           {
-            "key": "Cache-Control",
-            "value": "public, max-age=0, must-revalidate"
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET,POST,PUT,DELETE,OPTIONS"
+          },
+          {
+            "key": "Access-Control-Allow-Headers",
+            "value": "X-Requested-With, Content-Type, Accept"
           }
         ]
       }
