@@ -18,6 +18,7 @@ CORS(app, resources={
     r"/api/*": {
         "origins": [
             "http://localhost:5173",
+            "https://voice-challan-app.vercel.app",
             "https://voice-challan-project.vercel.app",
             "https://voice-challan-api.onrender.com"
         ],

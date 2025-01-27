@@ -11,6 +11,7 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
+    "date-fns": "^4.1.0",
     "lamejs": "^1.2.1",
     "mic-recorder-to-mp3": "^2.2.2",
     "react": "^18.2.0",

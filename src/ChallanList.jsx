@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { config } from './config';
 
 const ChallanList = () => {
   const [challans, setChallans] = useState([]);
@@ -30,7 +31,7 @@ const ChallanList = () => {
         end_date: dateFilter.endDate
       });
 
-      const response = await fetch(`http://localhost:5000/api/list-challans?${params}`);
+      const response = await fetch(`${config.apiUrl}/api/list-challans?${params}`);
       if (!response.ok) throw new Error('Failed to fetch challans');
       
       const data = await response.json();
@@ -44,7 +45,7 @@ const ChallanList = () => {
 
   const downloadPDF = async (challanId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/download-pdf/${challanId}`);
+      const response = await fetch(`${config.apiUrl}/api/download-pdf/${challanId}`);
       if (!response.ok) throw new Error('Failed to download PDF');
       
       const blob = await response.blob();

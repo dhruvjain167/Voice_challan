@@ -2,21 +2,22 @@
     "version": 2,
     "builds": [
       {
-        "src": "app.py",
-        "use": "@vercel/python"
+        "src": "dist/**",
+        "use": "@vercel/static"
       }
     ],
-    "env": {
-      "PYTHON_VERSION": "3.8"
-    },
-    "rewrites": [
+    "routes": [
       {
-        "source": "/api/:path*",
-        "destination": "https://voice-challan-api.onrender.com/api/:path*"
+        "src": "/api/(.*)",
+        "dest": "https://voice-challan-api.onrender.com/api/$1"
       },
       {
-        "source": "/(.*)",
-        "destination": "/index.html"
+        "src": "/(.*)",
+        "dest": "/dist/$1"
+      },
+      {
+        "src": "/[^.]+",
+        "dest": "/dist/index.html"
       }
     ],
     "headers": [
@@ -40,4 +41,4 @@
     ],
     "buildCommand": "npm run build",
     "outputDirectory": "dist"
-  }
+}
