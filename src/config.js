@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.PROD 
   ? 'https://voice-challan-api.onrender.com'
-  : 'http://localhost:5173';
+  : 'http://localhost:5000';
 
 export const config = {
   apiUrl: API_URL,

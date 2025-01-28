@@ -1,44 +1,18 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "dist/**",
-        "use": "@vercel/static"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "https://voice-challan-api.onrender.com/api/$1"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/dist/$1"
-      },
-      {
-        "src": "/[^.]+",
-        "dest": "/dist/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "/api/(.*)",
-        "headers": [
-          {
-            "key": "Access-Control-Allow-Origin",
-            "value": "*"
-          },
-          {
-            "key": "Access-Control-Allow-Methods",
-            "value": "GET,POST,PUT,DELETE,OPTIONS"
-          },
-          {
-            "key": "Access-Control-Allow-Headers",
-            "value": "X-Requested-With, Content-Type, Accept"
-          }
-        ]
-      }
-    ],
-    "buildCommand": "npm run build",
-    "outputDirectory": "dist"
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "PYTHON_VERSION": "3.8"
+  }
 }
