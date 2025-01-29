@@ -21,6 +21,8 @@ const App = () => {
   const recorder = useRef(null);
   const stream = useRef(null);
   const audioInputRef = useRef(null);
+  const customerNameRef = useRef(null);
+  const challanNoRef = useRef(null);
 
   // Responsive design check
   useEffect(() => {
@@ -237,6 +239,7 @@ const App = () => {
               </label>
               <input
                 id="customerName"
+                ref={customerNameRef}
                 type="text"
                 placeholder="Enter customer name"
                 className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
@@ -251,6 +254,7 @@ const App = () => {
               </label>
               <input
                 id="challanNo"
+                ref={challanNoRef}
                 type="text"
                 placeholder="Enter challan number"
                 className="w-full p-2 border rounded focus:ring-blue-500 focus:border-blue-500"
