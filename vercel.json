@@ -1,0 +1,21 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "server/app.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "server/app.py"
+        }
+    ],
+    "env": {
+        "PYTHON_VERSION": "3.9",
+        "SUPABASE_URL": "@supabase_url",
+        "SUPABASE_KEY": "@supabase_key",
+        "SUPABASE_DB_URL": "@supabase_db_url"
+    }
+} 
